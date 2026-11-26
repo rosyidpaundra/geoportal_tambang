@@ -1413,6 +1413,14 @@ window.LAYER_CATALOG = [
   }
 ];
 
+/* ============================================================
+   Alamat GeoServer untuk versi web (Vercel).
+   Data dibaca dari GeoServer di PC Anda lewat terowongan ngrok.
+   Kalau alamat ngrok berubah, ganti SATU baris di bawah ini,
+   atau buka situsnya dengan tambahan:
+     ...vercel.app/?gs=https://alamat-baru.ngrok-free.dev/geoserver
+   Versi lokal (dobel-klik file) tetap memakai localhost:8080.
+   ============================================================ */
 window.GEOPORTAL_DEFAULTS = {
   geoserverUrl: 'https://gap-handbag-shack.ngrok-free.dev/geoserver',
   workspace: 'geoportal_tambang',
@@ -1581,6 +1589,26 @@ window.LAYER_GROUPS = ['Wilayah & Perizinan', 'Operasional Tambang', 'Lingkungan
 
   var settings = loadSettings();
   settings.mode = 'live';
+
+  /* Alamat GeoServer dari parameter alamat, mis. ?gs=https://xxx.ngrok-free.app/geoserver */
+  try {
+    var gsParam = new URLSearchParams(location.search).get('gs');
+    if (gsParam) {
+      settings.geoserverUrl = gsParam.replace(/\/+$/, '');
+      saveSettings();
+    }
+  } catch (err) { /* URLSearchParams tidak tersedia */ }
+
+  /* Kalau situs dibuka dari internet, jangan pakai alamat localhost yang mungkin
+     masih tersimpan di browser pengunjung dari kunjungan sebelumnya. */
+  try {
+    var hostNow = location.hostname;
+    var lokalPage = !hostNow || /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(hostNow);
+    if (!lokalPage && /localhost|127\.0\.0\.1/.test(settings.geoserverUrl || '')) {
+      settings.geoserverUrl = window.GEOPORTAL_DEFAULTS.geoserverUrl;
+      saveSettings();
+    }
+  } catch (err2) { /* abaikan */ }
 
   function saveSettings() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (err) { /* abaikan */ }
