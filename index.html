@@ -1590,6 +1590,15 @@ window.LAYER_GROUPS = ['Wilayah & Perizinan', 'Operasional Tambang', 'Lingkungan
   var settings = loadSettings();
   settings.mode = 'live';
 
+  /* Kalau berkas ini diterbitkan ulang dengan alamat GeoServer yang baru, alamat lama
+     yang masih tersimpan di browser pengunjung (mis. ngrok) tidak dipakai lagi. */
+  try {
+    if (settings.defaultAtSave !== window.GEOPORTAL_DEFAULTS.geoserverUrl) {
+      settings.geoserverUrl = window.GEOPORTAL_DEFAULTS.geoserverUrl;
+      saveSettings();
+    }
+  } catch (errDefault) { /* abaikan */ }
+
   /* Alamat GeoServer dari parameter alamat, mis. ?gs=https://xxx.trycloudflare.com/geoserver */
   try {
     var gsParam = new URLSearchParams(location.search).get('gs');
@@ -1611,7 +1620,10 @@ window.LAYER_GROUPS = ['Wilayah & Perizinan', 'Operasional Tambang', 'Lingkungan
   } catch (err2) { /* abaikan */ }
 
   function saveSettings() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (err) { /* abaikan */ }
+    try {
+      settings.defaultAtSave = window.GEOPORTAL_DEFAULTS.geoserverUrl;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (err) { /* abaikan */ }
   }
 
   function applyTheme(theme) {
